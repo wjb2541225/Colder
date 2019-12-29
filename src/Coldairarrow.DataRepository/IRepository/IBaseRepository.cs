@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Coldairarrow.Entity;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
@@ -33,28 +34,63 @@ namespace Coldairarrow.DataRepository
         /// 删除所有记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
-        void DeleteAll<T>() where T : class, new();
+        void DeleteAll<T>() where T : EntityBase, new();
 
         /// <summary>
         /// 删除单条记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        void Delete<T>(T entity) where T : class, new();
+        void Delete<T>(T entity) where T : EntityBase, new();
 
         /// <summary>
         /// 删除多条记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        void Delete<T>(List<T> entities) where T : class, new();
+        void Delete<T>(List<T> entities) where T : EntityBase, new();
 
         /// <summary>
         /// 按条件删除记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="condition">筛选条件</param>
-        void Delete<T>(Expression<Func<T, bool>> condition) where T : class, new();
+        void Delete<T>(Expression<Func<T, bool>> condition) where T : EntityBase, new();
+
+        /// <summary>
+        /// 删除所有数据
+        /// </summary>
+        void LogicDeleteAll<T>() where T : EntityBase, new();
+
+        /// <summary>
+        /// 删除指定主键数据
+        /// </summary>
+        /// <param name="key"></param>
+        void LogicDelete<T>(string key) where T : EntityBase, new();
+
+        /// <summary>
+        /// 通过主键删除多条数据
+        /// </summary>
+        /// <param name="keys"></param>
+        void LogicDelete<T>(List<string> keys) where T : EntityBase, new();
+
+        /// <summary>
+        /// 删除单条数据
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        void LogicDelete<T>(T entity) where T : EntityBase, new();
+
+        /// <summary>
+        /// 删除多条数据
+        /// </summary>
+        /// <param name="entities">实体对象集合</param>
+        void LogicDelete<T>(List<T> entities) where T : EntityBase, new();
+
+        /// <summary>
+        /// 删除指定条件数据
+        /// </summary>
+        /// <param name="condition">筛选条件</param>
+        void LogicDelete<T>(Expression<Func<T, bool>> condition) where T : EntityBase, new();
 
         #endregion
 

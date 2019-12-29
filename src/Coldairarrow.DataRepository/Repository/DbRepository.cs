@@ -1,4 +1,5 @@
-﻿using Coldairarrow.Util;
+﻿using Coldairarrow.Entity;
+using Coldairarrow.Util;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -321,7 +322,7 @@ namespace Coldairarrow.DataRepository
         /// 删除所有记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
-        public virtual void DeleteAll<T>() where T : class, new()
+        public virtual void DeleteAll<T>() where T : EntityBase, new()
         {
             DeleteAll(typeof(T));
         }

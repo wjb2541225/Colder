@@ -1,4 +1,5 @@
-﻿using Coldairarrow.Util;
+﻿using Coldairarrow.Entity;
+using Coldairarrow.Util;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -120,40 +121,7 @@ namespace Coldairarrow.DataRepository
 
         #endregion
 
-        /// <summary>
-        /// 删除所有数据
-        /// </summary>
-        void LogicDeleteAll();
-
-        /// <summary>
-        /// 删除指定主键数据
-        /// </summary>
-        /// <param name="key"></param>
-        void LogicDelete(string key);
-
-        /// <summary>
-        /// 通过主键删除多条数据
-        /// </summary>
-        /// <param name="keys"></param>
-        void LogicDelete(List<string> keys);
-
-        /// <summary>
-        /// 删除单条数据
-        /// </summary>
-        /// <param name="entity">实体对象</param>
-        void LogicDelete(T entity);
-
-        /// <summary>
-        /// 删除多条数据
-        /// </summary>
-        /// <param name="entities">实体对象集合</param>
-        void LogicDelete(List<T> entities);
-
-        /// <summary>
-        /// 删除指定条件数据
-        /// </summary>
-        /// <param name="condition">筛选条件</param>
-        void LogicDelete(Expression<Func<T, bool>> condition);
+    
 
         #region 更新数据
 
