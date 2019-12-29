@@ -1,0 +1,126 @@
+﻿@using Coldairarrow.Entity.Base_SysManage;
+@using Coldairarrow.Util;
+@inherits DependencyViewPage
+@{
+    Layout = "~/Views/Shared/_Layout_Form.cshtml";
+
+    var obj = (Base_SysMenu)Model;
+    var objStr = Html.Raw(obj.ToJson());
+}
+<div style="padding:15px;padding-right:45px;">
+    <form id="form" class="form-horizontal" role="form">
+
+        <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">菜单位置</label>
+            <div class="col-sm-5">
+                <select id="parentId" class="selectpicker form-control" value="@obj.ParentId" name="ParentId" data-style="btn-default btn-sm"></select>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">菜单名称</label>
+            <div class="col-sm-5">
+                <input name="MenuName" value="@obj.MenuName" type="text" class="form-control" required>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">菜单标题</label>
+            <div class="col-sm-5">
+                <input name="MenuTitle" value="@obj.MenuTitle" type="text" class="form-control" required>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">菜单图标</label>
+            <div class="col-sm-5">
+                <input name="MenuImg" value="@obj.MenuImg" type="text" class="form-control" required>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">菜单类型</label>
+            <div class="col-sm-5">
+                <select name="MenuType" class="selectpicker form-control" value="@obj.MenuType"  data-style="btn-default btn-sm" required>
+                    <option value="1">
+                        导航菜单
+                    </option>
+                    <option value="2">
+                        页面按钮
+                    </option>
+                </select>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">导航地址</label>
+            <div class="col-sm-5">
+                <input name="NavigateUrl" value="@obj.NavigateUrl" type="text" class="form-control">
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">排序</label>
+            <div class="col-sm-5">
+                <input name="SortCode" value="@obj.SortCode" type="text" class="form-control" required>
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <button id="submit" type="submit" class="hidden">提交</button>
+        </div>
+    </form>
+</div>
+<script>
+    var theEntity = @objStr;
+
+    $(function () {
+        initEvent();
+        initParent();
+    });
+
+    //事件绑定
+    function initEvent() {
+        //表单校验
+        $('#form').validator().on('submit', function (e) {
+            //校验成功
+            if (!e.isDefaultPrevented()) {
+                e.preventDefault();
+
+                var values = $('#form').getValues();
+
+                $.extend(theEntity, values);
+                loading();
+                $.postJSON('/Base_SysManage/Base_SysMenu/SaveData', theEntity, function (resJson) {
+                    loading(false);
+
+                    if (resJson.Success) {
+                        parent.$('#dataTable').bootstrapTable('refresh');
+                        parent.dialogSuccess();
+                        dialogClose();
+                        initParent();
+                    }
+                    else {
+                        dialogError(resJson.Msg);
+                    }
+                });
+            }
+        })
+
+    }
+
+    //提交表单
+    function submitForm() {
+        $('#submit').trigger('click');
+    }
+
+    function initParent() {
+
+        $('#parentId').selectpicker({
+            url: '/Base_SysManage/Base_SysMenu/GetDataList',
+            value: value,
+            valueField: 'Id',
+            textField: 'Title'
+        });
+    }
+</script>
