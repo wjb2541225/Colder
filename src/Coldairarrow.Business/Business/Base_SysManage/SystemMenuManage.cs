@@ -53,7 +53,7 @@ namespace Coldairarrow.Business.Base_SysManage
                     var parent = menus.FirstOrDefault(p => p.id == menuDefine.ParentId);
                     if (parent == null)
                     {
-                        menus.Add(parent);
+                        menus.Add(developMenu);
                     }
                     else
                     {

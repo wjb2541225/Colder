@@ -53,9 +53,9 @@ namespace Coldairarrow.Web.Areas.Base_SysManage.Controllers
 
             return DataTable_Bootstrap(dataList, pagination);
         }
-        public IList<Base_SysMenu> GetDataList()
+        public ActionResult GetAllData()
         {
-            return _base_SysMenuBus.GetDataList(new Pagination(), null, null);
+            return JsonContent(_base_SysMenuBus.GetDataList(new Pagination(), null, null).ToJson());
         }
 
         #endregion

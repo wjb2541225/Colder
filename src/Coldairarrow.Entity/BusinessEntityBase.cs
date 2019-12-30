@@ -17,7 +17,7 @@ namespace Coldairarrow.Entity
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime CreateDate { get; set; }
+        public DateTime? CreateDate { get; set; }
 
         /// <summary>
         /// 创建用户主键
