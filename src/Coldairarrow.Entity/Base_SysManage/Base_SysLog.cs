@@ -9,7 +9,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// 系统日志表
     /// </summary>
     [Table("Base_SysLog")]
-    public class Base_SysLog
+    public class Base_SysLog : EntityBase
     {
 
         /// <summary>

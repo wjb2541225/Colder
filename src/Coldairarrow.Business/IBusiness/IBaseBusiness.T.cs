@@ -27,13 +27,13 @@ namespace Coldairarrow.Business
         /// 添加多条数据
         /// </summary>
         /// <param name="entities">实体对象集合</param>
-        void Insert(List<T> entities);
+        void Insert(IList<T> entities);
 
         /// <summary>
         /// 批量添加数据,速度快
         /// </summary>
         /// <param name="entities"></param>
-        void BulkInsert(List<T> entities);
+        void BulkInsert(IList<T> entities);
 
         #endregion
 
@@ -54,7 +54,7 @@ namespace Coldairarrow.Business
         /// 通过主键删除多条数据
         /// </summary>
         /// <param name="keys"></param>
-        void Delete(List<string> keys);
+        void Delete(IList<string> keys);
 
         /// <summary>
         /// 删除单条数据
@@ -66,7 +66,7 @@ namespace Coldairarrow.Business
         /// 删除多条数据
         /// </summary>
         /// <param name="entities">实体对象集合</param>
-        void Delete(List<T> entities);
+        void Delete(IList<T> entities);
 
         /// <summary>
         /// 删除指定条件数据
@@ -99,7 +99,7 @@ namespace Coldairarrow.Business
         /// 通过主键删除多条数据
         /// </summary>
         /// <param name="keys"></param>
-        void LogicDelete(List<string> keys);
+        void LogicDelete(IList<string> keys);
 
         /// <summary>
         /// 删除单条数据
@@ -111,7 +111,7 @@ namespace Coldairarrow.Business
         /// 删除多条数据
         /// </summary>
         /// <param name="entities">实体对象集合</param>
-        void LogicDelete(List<T> entities);
+        void LogicDelete(IList<T> entities);
 
         /// <summary>
         /// 删除指定条件数据
@@ -134,21 +134,21 @@ namespace Coldairarrow.Business
         /// 更新多条数据
         /// </summary>
         /// <param name="entities"></param>
-        void Update(List<T> entities);
+        void Update(IList<T> entities);
 
         /// <summary>
         /// 更新单条数据指定属性
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="properties">属性</param>
-        void UpdateAny(T entity, List<string> properties);
+        void UpdateAny(T entity, IList<string> properties);
 
         /// <summary>
         /// 更新多条数据执行属性
         /// </summary>
         /// <param name="entities">实体对象集合</param>
         /// <param name="properties">属性</param>
-        void UpdateAny(List<T> entities, List<string> properties);
+        void UpdateAny(IList<T> entities, IList<string> properties);
 
         /// <summary>
         /// 通过条件更新数据
@@ -183,7 +183,7 @@ namespace Coldairarrow.Business
         /// 注:会获取所有数据,数据量大请勿使用
         /// </summary>
         /// <returns></returns>
-        List<T> GetList();
+        IList<T> GetList();
 
         /// <summary>
         /// 获取IQueryable
@@ -204,7 +204,7 @@ namespace Coldairarrow.Business
         /// <param name="sql">SQL</param>
         /// <param name="parameters">参数</param>
         /// <returns></returns>
-        DataTable GetDataTableWithSql(string sql, List<DbParameter> parameters);
+        DataTable GetDataTableWithSql(string sql, IList<DbParameter> parameters);
 
         /// <summary>
         /// 通过SQL获取List
@@ -212,7 +212,7 @@ namespace Coldairarrow.Business
         /// <typeparam name="U">泛型</typeparam>
         /// <param name="sqlStr">SQL</param>
         /// <returns></returns>
-        List<U> GetListBySql<U>(string sqlStr) where U : class, new();
+        IList<U> GetListBySql<U>(string sqlStr) where U : class, new();
 
         /// <summary>
         /// 通过SQL获取List
@@ -221,7 +221,7 @@ namespace Coldairarrow.Business
         /// <param name="sqlStr">SQL</param>
         /// <param name="param">参数</param>
         /// <returns></returns>
-        List<U> GetListBySql<U>(string sqlStr, List<DbParameter> param) where U : class, new();
+        IList<U> GetListBySql<U>(string sqlStr, IList<DbParameter> param) where U : class, new();
 
         #endregion
 
@@ -238,7 +238,7 @@ namespace Coldairarrow.Business
         /// </summary>
         /// <param name="sql">SQL</param>
         /// <param name="spList">参数</param>
-        int ExecuteSql(string sql, List<DbParameter> spList);
+        int ExecuteSql(string sql, IList<DbParameter> spList);
 
         #endregion
 

@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// 系统，用户表
     /// </summary>
     [Table("Base_User")]
-    public class Base_User
+    public class Base_User : BusinessEntityBase
     {
 
         /// <summary>

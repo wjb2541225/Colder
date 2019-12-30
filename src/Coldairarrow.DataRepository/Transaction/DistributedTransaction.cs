@@ -46,8 +46,8 @@ namespace Coldairarrow.DataRepository
         {
             return $"{repository.DbType.ToString()}{repository.ConnectionString}";
         }
-        private SynchronizedCollection<IRepository> _repositorys { get; set; } 
-            = new SynchronizedCollection<IRepository>();
+        private Coldairarrow.Util.ClassLibrary.SynchronizedCollection<IRepository> _repositorys { get; set; } 
+            = new Coldairarrow.Util.ClassLibrary.SynchronizedCollection<IRepository>();
         private object _lock { get; } = new object();
         private void _BeginTransaction(params IRepository[] repositorys)
         {

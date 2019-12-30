@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// 角色权限表
     /// </summary>
     [Table("Base_PermissionRole")]
-    public class Base_PermissionRole
+    public class Base_PermissionRole : EntityBase
     {
 
         /// <summary>

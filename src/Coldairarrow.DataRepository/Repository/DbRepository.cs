@@ -276,9 +276,9 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        public void Insert<T>(T entity) where T : class, new()
+        public void Insert<T>(T entity) where T : EntityBase, new()
         {
-            Insert(new List<object> { entity });
+            InsertList<T>(new List<T> { entity });
         }
 
         /// <summary>
@@ -286,16 +286,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        public void Insert<T>(List<T> entities) where T : class, new()
-        {
-            Insert(entities.CastToList<object>());
-        }
-
-        /// <summary>
-        /// 添加多条记录
-        /// </summary>
-        /// <param name="entities">对象集合</param>
-        public void Insert(List<object> entities)
+        public void InsertList<T>(IList<T> entities) where T : EntityBase, new()
         {
             PackWork(entities.Select(x => x.GetType()), () =>
             {
@@ -303,13 +294,14 @@ namespace Coldairarrow.DataRepository
             });
         }
 
+
         /// <summary>
         /// 使用Bulk批量导入,速度快
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体集合</param>
         /// <exception cref="NotImplementedException">不支持此操作!</exception>
-        public virtual void BulkInsert<T>(List<T> entities) where T : class, new()
+        public virtual void BulkInsert<T>(IList<T> entities) where T : EntityBase, new()
         {
             throw new NotImplementedException("不支持此操作!");
         }
@@ -324,28 +316,20 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         public virtual void DeleteAll<T>() where T : EntityBase, new()
         {
-            DeleteAll(typeof(T));
-        }
-
-        /// <summary>
-        /// 删除所有记录
-        /// </summary>
-        /// <param name="type">实体类型</param>
-        public virtual void DeleteAll(Type type)
-        {
-            string tableName = GetDbTableName(type);
-            string sql = $"DELETE FROM {FormatFieldName(tableName)}";
+            var type = typeof(T);
+            string sql = $@"Delete from {FormatFieldName(GetDbTableName(type))}";
             ExecuteSql(sql);
         }
+
 
         /// <summary>
         /// 删除单条记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        public void Delete<T>(T entity) where T : class, new()
+        public void Delete<T>(T entity) where T : EntityBase, new()
         {
-            Delete(new List<object> { entity });
+            DeleteList<T>(new List<T> { entity });
         }
 
         /// <summary>
@@ -353,16 +337,16 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        public void Delete<T>(List<T> entities) where T : class, new()
+        public void DeleteList<T>(IList<T> entities) where T : EntityBase, new()
         {
-            Delete(entities.CastToList<object>());
+            DeleteList(entities);
         }
 
         /// <summary>
         /// 删除多条记录
         /// </summary>
         /// <param name="entities">实体对象集合</param>
-        public void Delete(List<object> entities)
+        public void Delete(IList<EntityBase> entities)
         {
             PackWork(entities.Select(x => x.GetType()), () =>
             {
@@ -375,10 +359,10 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="condition">筛选条件</param>
-        public void Delete<T>(Expression<Func<T, bool>> condition) where T : class, new()
+        public void Delete<T>(Expression<Func<T, bool>> condition) where T : EntityBase, new()
         {
             var deleteList = GetIQueryable<T>().Where(condition).ToList();
-            Delete(deleteList);
+            DeleteList<T>(deleteList);
         }
 
         /// <summary>
@@ -386,7 +370,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="key">主键</param>
-        public void Delete<T>(string key) where T : class, new()
+        public void Delete<T>(string key) where T : EntityBase, new()
         {
             Delete<T>(new List<string> { key });
         }
@@ -396,44 +380,12 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="keys">多条记录主键集合</param>
-        public void Delete<T>(List<string> keys) where T : class, new()
+        public void Delete<T>(IList<string> keys) where T : EntityBase, new()
         {
-            Delete(typeof(T), keys);
+            IList<T> deleteList = BuildEntity<T>(keys);
+            DeleteList(deleteList);
         }
 
-        /// <summary>
-        /// 删除单条记录
-        /// </summary>
-        /// <param name="type">实体类型</param>
-        /// <param name="key">主键</param>
-        public void Delete(Type type, string key)
-        {
-            Delete(type, new List<string> { key });
-        }
-
-        /// <summary>
-        /// 删除多条记录
-        /// </summary>
-        /// <param name="type">实体类型</param>
-        /// <param name="keys">多条记录主键集合</param>
-        /// <exception cref="Exception">该实体没有主键标识！请使用[Key]标识主键！</exception>
-        public void Delete(Type type, List<string> keys)
-        {
-            var theProperty = GetKeyProperty(type);
-            if (theProperty == null)
-                throw new Exception("该实体没有主键标识！请使用[Key]标识主键！");
-
-            List<object> deleteList = new List<object>();
-            keys.ForEach(aKey =>
-            {
-                object newData = Activator.CreateInstance(type);
-                var value = aKey.ChangeType(theProperty.PropertyType);
-                theProperty.SetValue(newData, value);
-                deleteList.Add(newData);
-            });
-
-            Delete(deleteList);
-        }
 
         /// <summary>
         /// 使用SQL语句按照条件删除数据
@@ -445,7 +397,7 @@ namespace Coldairarrow.DataRepository
         /// <returns>
         /// 影响条数
         /// </returns>
-        public int Delete_Sql<T>(Expression<Func<T, bool>> where) where T : class, new()
+        public int Delete_Sql<T>(Expression<Func<T, bool>> where) where T : EntityBase, new()
         {
             string tableName = typeof(T).Name;
             DbProviderFactory dbProviderFactory = DbProviderFactoryHelper.GetDbProviderFactory(DbType);
@@ -464,6 +416,85 @@ namespace Coldairarrow.DataRepository
             return ExecuteSql(sql, paramters);
         }
 
+
+        private IList<T> BuildEntity<T>(IList<string> keys)
+        {
+            var type = typeof(T);
+            var theProperty = GetKeyProperty(type);
+            if (theProperty == null)
+                throw new Exception("该实体没有主键标识！请使用[Key]标识主键！");
+
+            List<T> deleteList = new List<T>();
+            keys.ForEach(aKey =>
+            {
+                T newData = (T)Activator.CreateInstance(type);
+                var value = aKey.ChangeType(theProperty.PropertyType);
+                theProperty.SetValue(newData, value);
+                deleteList.Add(newData);
+            });
+            return deleteList;
+        }
+
+
+        /// <summary>
+        /// 删除所有数据
+        /// </summary>
+        public void LogicDeleteAll<T>() where T : BusinessEntityBase, new()
+        {
+            var type = typeof(T);
+            string sql = $@"update  {FormatFieldName(GetDbTableName(type))} set {BusinessEntityBase.STR_DELETE_FIELD_NAME}={BusinessEntityBase.INT_DELETED}";
+            ExecuteSql(sql);
+        }
+
+        /// <summary>
+        /// 删除指定主键数据
+        /// </summary>
+        /// <param name="key"></param>
+        public void LogicDelete<T>(string key) where T : BusinessEntityBase, new()
+        {
+            LogicDeleteList<T>(new List<string> { key });
+        }
+
+        /// <summary>
+        /// 通过主键删除多条数据
+        /// </summary>
+        /// <param name="keys"></param>
+        public void LogicDeleteList<T>(IList<string> keys) where T : BusinessEntityBase, new()
+        {
+            var list = BuildEntity<T>(keys);
+            list.ForEach((item) => { item.DeleteMark = BusinessEntityBase.INT_DELETED; });
+            LogicDeleteList(list);
+
+        }
+
+        /// <summary>
+        /// 删除单条数据
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        public void LogicDelete<T>(T entity) where T : BusinessEntityBase, new()
+        {
+            LogicDeleteList<T>(new List<T> { entity });
+        }
+
+        /// <summary>
+        /// 删除多条数据
+        /// </summary>
+        /// <param name="entities">实体对象集合</param>
+        public void LogicDeleteList<T>(IList<T> entities) where T : BusinessEntityBase, new()
+        {
+            UpdateList<T>(entities);
+        }
+
+        /// <summary>
+        /// 删除指定条件数据
+        /// </summary>
+        /// <param name="condition">筛选条件</param>
+        public void LogicDelete<T>(Expression<Func<T, bool>> condition) where T : BusinessEntityBase, new()
+        {
+            var list = GetIQueryable<T>().Where(condition).ToList();
+            DeleteList<T>(list);
+        }
+
         #endregion
 
         #region 更新数据
@@ -473,9 +504,9 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        public void Update<T>(T entity) where T : class, new()
+        public void Update<T>(T entity) where T : EntityBase, new()
         {
-            Update(new List<object> { entity });
+            UpdateList<T>(new List<T> { entity });
         }
 
         /// <summary>
@@ -483,32 +514,22 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        public void Update<T>(List<T> entities) where T : class, new()
-        {
-            Update(entities.CastToList<object>());
-        }
-
-        /// <summary>
-        /// 更新多条记录
-        /// </summary>
-        /// <param name="entities">实体对象集合</param>
-        public void Update(List<object> entities)
+        public void UpdateList<T>(IList<T> entities) where T : EntityBase, new()
         {
             PackWork(entities.Select(x => x.GetType()), () =>
             {
                 entities.ForEach(x => Db.Entry(x).State = EntityState.Modified);
             });
         }
-
         /// <summary>
         /// 更新单条记录的某些属性
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
         /// <param name="properties">属性</param>
-        public void UpdateAny<T>(T entity, List<string> properties) where T : class, new()
+        public void UpdateAny<T>(T entity, IList<string> properties) where T : EntityBase, new()
         {
-            UpdateAny(new List<object> { entity }, properties);
+            UpdateListAny<T>(new List<T> { entity }, properties);
         }
 
         /// <summary>
@@ -517,17 +538,7 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
         /// <param name="properties">属性</param>
-        public void UpdateAny<T>(List<T> entities, List<string> properties) where T : class, new()
-        {
-            UpdateAny(entities.CastToList<object>(), properties);
-        }
-
-        /// <summary>
-        /// 更新多条记录的某些属性
-        /// </summary>
-        /// <param name="entities">实体对象集合</param>
-        /// <param name="properties">属性</param>
-        public void UpdateAny(List<object> entities, List<string> properties)
+        public void UpdateListAny<T>(IList<T> entities, IList<string> properties) where T : EntityBase, new()
         {
             PackWork(entities.Select(x => x.GetType()), () =>
             {
@@ -549,11 +560,11 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="whereExpre">筛选条件</param>
         /// <param name="set">更新操作</param>
-        public void UpdateWhere<T>(Expression<Func<T, bool>> whereExpre, Action<T> set) where T : class, new()
+        public void UpdateWhere<T>(Expression<Func<T, bool>> whereExpre, Action<T> set) where T : EntityBase, new()
         {
             var list = GetIQueryable<T>().Where(whereExpre).ToList();
             list.ForEach(aData => set(aData));
-            Update(list);
+            UpdateList<T>(list);
         }
 
         /// <summary>
@@ -567,7 +578,7 @@ namespace Coldairarrow.DataRepository
         /// <returns>
         /// 影响条数
         /// </returns>
-        public int UpdateWhere_Sql<T>(Expression<Func<T, bool>> where, params (string field, object value)[] values) where T : class, new()
+        public int UpdateWhere_Sql<T>(Expression<Func<T, bool>> where, params (string field, object value)[] values) where T : EntityBase, new()
         {
             string tableName = typeof(T).Name;
             DbProviderFactory dbProviderFactory = DbProviderFactoryHelper.GetDbProviderFactory(DbType);
@@ -610,7 +621,7 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="keyValue">主键</param>
         /// <returns></returns>
-        public T GetEntity<T>(params object[] keyValue) where T : class, new()
+        public T GetEntity<T>(params object[] keyValue) where T : EntityBase, new()
         {
             var obj = Db.Set<T>().Find(keyValue);
             if (!obj.IsNullOrEmpty())
@@ -624,19 +635,9 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <returns></returns>
-        public List<T> GetList<T>() where T : class, new()
+        public IList<T> GetList<T>() where T : EntityBase, new()
         {
             return GetIQueryable<T>().ToList();
-        }
-
-        /// <summary>
-        /// 获取列表
-        /// </summary>
-        /// <param name="type">实体类型</param>
-        /// <returns></returns>
-        public List<object> GetList(Type type)
-        {
-            return GetIQueryable(type).CastToList<object>();
         }
 
         /// <summary>
@@ -645,7 +646,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <returns></returns>
-        public IQueryable<T> GetIQueryable<T>() where T : class, new()
+        public IQueryable<T> GetIQueryable<T>() where T : EntityBase, new()
         {
             return GetIQueryable(typeof(T)) as IQueryable<T>;
         }
@@ -677,7 +678,7 @@ namespace Coldairarrow.DataRepository
         /// <param name="sql">SQL语句</param>
         /// <param name="parameters">SQL参数</param>
         /// <returns></returns>
-        public DataTable GetDataTableWithSql(string sql, List<DbParameter> parameters)
+        public DataTable GetDataTableWithSql(string sql, IList<DbParameter> parameters)
         {
             DbProviderFactory dbProviderFactory = DbProviderFactoryHelper.GetDbProviderFactory(DbType);
             using (DbConnection conn = dbProviderFactory.CreateConnection())
@@ -726,7 +727,7 @@ namespace Coldairarrow.DataRepository
         /// <param name="sqlStr">SQL语句</param>
         /// <param name="parameters">SQL参数</param>
         /// <returns></returns>
-        public List<T> GetListBySql<T>(string sqlStr, List<DbParameter> parameters) where T : class, new()
+        public List<T> GetListBySql<T>(string sqlStr, IList<DbParameter> parameters) where T : class, new()
         {
             return Db.Set<T>().FromSql(sqlStr, parameters.ToArray()).ToList();
         }
@@ -754,7 +755,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="parameters">SQL参数</param>
-        public int ExecuteSql(string sql, List<DbParameter> parameters)
+        public int ExecuteSql(string sql, IList<DbParameter> parameters)
         {
             int count = Db.Database.ExecuteSqlCommand(sql, parameters.ToArray());
 

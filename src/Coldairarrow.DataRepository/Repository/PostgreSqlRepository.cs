@@ -44,7 +44,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="entities">数据</param>
-        public override void BulkInsert<T>(List<T> entities)
+        public override void BulkInsert<T>(IList<T> entities)
         {
             throw new Exception("抱歉！暂不支持PostgreSql！");
         }

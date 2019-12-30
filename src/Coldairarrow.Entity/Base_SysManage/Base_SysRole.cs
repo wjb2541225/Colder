@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// 系统角色
     /// </summary>
     [Table("Base_SysRole")]
-    public class Base_SysRole
+    public class Base_SysRole : BusinessEntityBase
     {
         /// <summary>
         /// 角色Id主键

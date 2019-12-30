@@ -26,7 +26,7 @@ namespace Coldairarrow.Business.Base_SysManage
         /// 获取所有数据库连接
         /// </summary>
         /// <returns></returns>
-        public List<Base_DatabaseLink> GetAllDbLink()
+        public IList<Base_DatabaseLink> GetAllDbLink()
         {
             return GetList();
         }
@@ -36,7 +36,7 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         /// <param name="linkId">数据库连接Id</param>
         /// <returns></returns>
-        public List<DbTableInfo> GetDbTableList(string linkId)
+        public IList<DbTableInfo> GetDbTableList(string linkId)
         {
             if (linkId.IsNullOrEmpty())
                 return new List<DbTableInfo>();

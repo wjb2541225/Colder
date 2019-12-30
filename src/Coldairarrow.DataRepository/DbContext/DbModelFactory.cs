@@ -96,7 +96,7 @@ namespace Coldairarrow.DataRepository
                 _modelTypeMap[aType.Name] = aType;
             });
         }
-        private static SynchronizedCollection<IRepositoryDbContext> _observers { get; } = new SynchronizedCollection<IRepositoryDbContext>();
+        private static Coldairarrow.Util.ClassLibrary.SynchronizedCollection<IRepositoryDbContext> _observers { get; } = new Coldairarrow.Util.ClassLibrary.SynchronizedCollection<IRepositoryDbContext>();
         private static ConcurrentDictionary<string, Type> _modelTypeMap { get; } = new ConcurrentDictionary<string, Type>();
         private static ConcurrentDictionary<string, DbCompiledModelInfo> _dbCompiledModel { get; } = new ConcurrentDictionary<string, DbCompiledModelInfo>();
         private static DbCompiledModelInfo BuildDbCompiledModelInfo(string nameOrConStr, DatabaseType dbType)

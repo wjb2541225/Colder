@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// AppId»®œﬁ±Ì
     /// </summary>
     [Table("Base_PermissionAppId")]
-    public class Base_PermissionAppId
+    public class Base_PermissionAppId:EntityBase
     {
 
         /// <summary>

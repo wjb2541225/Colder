@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// 数据库连接
     /// </summary>
     [Table("Base_DatabaseLink")]
-    public class Base_DatabaseLink
+    public class Base_DatabaseLink : BusinessEntityBase
     {
 
         /// <summary>

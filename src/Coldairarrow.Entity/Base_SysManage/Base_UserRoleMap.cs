@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// Base_UserRoleMap
     /// </summary>
     [Table("Base_UserRoleMap")]
-    public class Base_UserRoleMap
+    public class Base_UserRoleMap : EntityBase
     {
 
         /// <summary>

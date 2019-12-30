@@ -17,14 +17,14 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        void Insert<T>(T entity) where T : class, new();
+        void Insert<T>(T entity) where T : EntityBase, new();
 
         /// <summary>
         /// 添加多条记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        void Insert<T>(List<T> entities) where T : class, new();
+        void InsertList<T>(IList<T> entities) where T : EntityBase, new();
 
         #endregion
 
@@ -48,7 +48,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        void Delete<T>(List<T> entities) where T : EntityBase, new();
+        void DeleteList<T>(IList<T> entities) where T : EntityBase, new();
 
         /// <summary>
         /// 按条件删除记录
@@ -60,37 +60,37 @@ namespace Coldairarrow.DataRepository
         /// <summary>
         /// 删除所有数据
         /// </summary>
-        void LogicDeleteAll<T>() where T : EntityBase, new();
+        void LogicDeleteAll<T>() where T : BusinessEntityBase, new();
 
         /// <summary>
         /// 删除指定主键数据
         /// </summary>
         /// <param name="key"></param>
-        void LogicDelete<T>(string key) where T : EntityBase, new();
+        void LogicDelete<T>(string key) where T : BusinessEntityBase, new();
 
         /// <summary>
         /// 通过主键删除多条数据
         /// </summary>
         /// <param name="keys"></param>
-        void LogicDelete<T>(List<string> keys) where T : EntityBase, new();
+        void LogicDeleteList<T>(IList<string> keys) where T : BusinessEntityBase, new();
 
         /// <summary>
         /// 删除单条数据
         /// </summary>
         /// <param name="entity">实体对象</param>
-        void LogicDelete<T>(T entity) where T : EntityBase, new();
+        void LogicDelete<T>(T entity) where T : BusinessEntityBase, new();
 
         /// <summary>
         /// 删除多条数据
         /// </summary>
         /// <param name="entities">实体对象集合</param>
-        void LogicDelete<T>(List<T> entities) where T : EntityBase, new();
+        void LogicDeleteList<T>(IList<T> entities) where T : BusinessEntityBase, new();
 
         /// <summary>
         /// 删除指定条件数据
         /// </summary>
         /// <param name="condition">筛选条件</param>
-        void LogicDelete<T>(Expression<Func<T, bool>> condition) where T : EntityBase, new();
+        void LogicDelete<T>(Expression<Func<T, bool>> condition) where T : BusinessEntityBase, new();
 
         #endregion
 
@@ -101,14 +101,14 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        void Update<T>(T entity) where T : class, new();
+        void Update<T>(T entity) where T : EntityBase, new();
 
         /// <summary>
         /// 更新多条记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        void Update<T>(List<T> entities) where T : class, new();
+        void UpdateList<T>(IList<T> entities) where T : EntityBase, new();
 
         /// <summary>
         /// 更新单条记录的某些属性
@@ -116,7 +116,7 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
         /// <param name="properties">属性</param>
-        void UpdateAny<T>(T entity, List<string> properties) where T : class, new();
+        void UpdateAny<T>(T entity, IList<string> properties) where T : EntityBase, new();
 
         /// <summary>
         /// 更新多条记录的某些属性
@@ -124,7 +124,7 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
         /// <param name="properties">属性</param>
-        void UpdateAny<T>(List<T> entities, List<string> properties) where T : class, new();
+        void UpdateListAny<T>(IList<T> entities, IList<string> properties) where T : EntityBase, new();
 
         /// <summary>
         /// 按照条件更新记录
@@ -132,7 +132,7 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="whereExpre">筛选条件</param>
         /// <param name="set">更新操作</param>
-        void UpdateWhere<T>(Expression<Func<T, bool>> whereExpre, Action<T> set) where T : class, new();
+        void UpdateWhere<T>(Expression<Func<T, bool>> whereExpre, Action<T> set) where T : EntityBase, new();
 
         #endregion
 
@@ -143,7 +143,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <returns></returns>
-        List<T> GetList<T>() where T : class, new();
+        IList<T> GetList<T>() where T : EntityBase, new();
 
         #endregion
     }

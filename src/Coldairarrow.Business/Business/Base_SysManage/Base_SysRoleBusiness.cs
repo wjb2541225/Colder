@@ -109,7 +109,7 @@ namespace Coldairarrow.Business.Base_SysManage
                 });
             });
 
-            Service.Insert(insertList);
+            Service.InsertList(insertList);
             _permissionManage.ClearUserPermissionCache();
 
             return Success();

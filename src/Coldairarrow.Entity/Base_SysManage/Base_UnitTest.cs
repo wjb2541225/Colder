@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// µ¥Ôª²âÊÔ±í
     /// </summary>
     [Table("Base_UnitTest")]
-    public class Base_UnitTest
+    public class Base_UnitTest : EntityBase
     {
 
         /// <summary>

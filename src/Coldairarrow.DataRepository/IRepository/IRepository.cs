@@ -53,61 +53,30 @@ namespace Coldairarrow.DataRepository
         #region 增加数据
 
         /// <summary>
-        /// 添加多条记录
-        /// </summary>
-        /// <param name="entities">对象集合</param>
-        void Insert(List<object> entities);
-
-        /// <summary>
         /// 使用Bulk批量导入,速度快
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体集合</param>
-        void BulkInsert<T>(List<T> entities) where T : class, new();
+        void BulkInsert<T>(IList<T> entities) where T : EntityBase, new();
 
         #endregion
 
         #region 删除数据
 
-        /// <summary>
-        /// 删除所有记录
-        /// </summary>
-        /// <param name="type">实体类型</param>
-        void DeleteAll(Type type);
-
-        /// <summary>
-        /// 删除单条记录
-        /// </summary>
-        /// <param name="type">实体类型</param>
-        /// <param name="key">主键</param>
-        void Delete(Type type, string key);
-
-        /// <summary>
-        /// 删除多条记录
-        /// </summary>
-        /// <param name="type">实体类型</param>
-        /// <param name="keys">多条记录主键集合</param>
-        void Delete(Type type, List<string> keys);
-
-        /// <summary>
-        /// 删除多条记录
-        /// </summary>
-        /// <param name="entities">实体对象集合</param>
-        void Delete(List<object> entities);
 
         /// <summary>
         /// 删除单条记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="key">主键</param>
-        void Delete<T>(string key) where T : class, new();
+        void Delete<T>(string key) where T : EntityBase, new();
 
         /// <summary>
         /// 删除多条记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="keys">多条记录主键集合</param>
-        void Delete<T>(List<string> keys) where T : class, new();
+        void Delete<T>(IList<string> keys) where T : EntityBase, new();
 
         /// <summary>
         /// 使用SQL语句按照条件删除数据
@@ -117,26 +86,12 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="where">条件</param>
         /// <returns>影响条数</returns>
-        int Delete_Sql<T>(Expression<Func<T, bool>> where) where T : class, new();
+        int Delete_Sql<T>(Expression<Func<T, bool>> where) where T : EntityBase, new();
 
         #endregion
 
-    
 
         #region 更新数据
-
-        /// <summary>
-        /// 更新多条记录
-        /// </summary>
-        /// <param name="entities">实体对象集合</param>
-        void Update(List<object> entities);
-
-        /// <summary>
-        /// 更新多条记录的某些属性
-        /// </summary>
-        /// <param name="entities">实体对象集合</param>
-        /// <param name="properties">属性</param>
-        void UpdateAny(List<object> entities, List<string> properties);
 
         /// <summary>
         /// 使用SQL语句按照条件更新
@@ -147,7 +102,7 @@ namespace Coldairarrow.DataRepository
         /// <param name="where">筛选条件</param>
         /// <param name="values">字段值设置</param>
         /// <returns>影响条数</returns>
-        int UpdateWhere_Sql<T>(Expression<Func<T, bool>> where, params (string field, object value)[] values) where T : class, new();
+        int UpdateWhere_Sql<T>(Expression<Func<T, bool>> where, params (string field, object value)[] values) where T : EntityBase, new();
 
         #endregion
 
@@ -159,14 +114,8 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="keyValue">主键</param>
         /// <returns></returns>
-        T GetEntity<T>(params object[] keyValue) where T : class, new();
+        T GetEntity<T>(params object[] keyValue) where T : EntityBase, new();
 
-        /// <summary>
-        /// 获取列表
-        /// </summary>
-        /// <param name="type">实体类型</param>
-        /// <returns></returns>
-        List<object> GetList(Type type);
 
         /// <summary>
         /// 获取IQueryable
@@ -174,7 +123,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <returns></returns>
-        IQueryable<T> GetIQueryable<T>() where T : class, new();
+        IQueryable<T> GetIQueryable<T>() where T : EntityBase, new();
 
         /// <summary>
         /// 获取IQueryable
@@ -197,7 +146,7 @@ namespace Coldairarrow.DataRepository
         /// <param name="sql">SQL语句</param>
         /// <param name="parameters">SQL参数</param>
         /// <returns></returns>
-        DataTable GetDataTableWithSql(string sql, List<DbParameter> parameters);
+        DataTable GetDataTableWithSql(string sql, IList<DbParameter> parameters);
 
         /// <summary>
         /// 通过SQL获取List
@@ -214,7 +163,7 @@ namespace Coldairarrow.DataRepository
         /// <param name="sqlStr">SQL语句</param>
         /// <param name="parameters">SQL参数</param>
         /// <returns></returns>
-        List<T> GetListBySql<T>(string sqlStr, List<DbParameter> parameters) where T : class, new();
+        List<T> GetListBySql<T>(string sqlStr, IList<DbParameter> parameters) where T : class, new();
 
         #endregion
 
@@ -231,7 +180,8 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="parameters">SQL参数</param>
-        int ExecuteSql(string sql, List<DbParameter> parameters);
+        int ExecuteSql(string sql, IList<DbParameter> parameters);
+
 
         #endregion
     }

@@ -15,7 +15,7 @@ namespace Coldairarrow.Business.Base_SysManage
             var where = LinqHelper.True<Base_AppSecret>();
             if (!keyword.IsNullOrEmpty())
             {
-                where = where.And(x => 
+                where = where.And(x =>
                     x.AppId.Contains(keyword)
                     || x.AppSecret.Contains(keyword)
                     || x.AppName.Contains(keyword));
@@ -99,7 +99,7 @@ namespace Coldairarrow.Business.Base_SysManage
                 });
             });
 
-            Service.Insert(insertList);
+            Service.InsertList(insertList);
 
             return Success();
         }

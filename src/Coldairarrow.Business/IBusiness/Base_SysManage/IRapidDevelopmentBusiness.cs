@@ -10,14 +10,14 @@ namespace Coldairarrow.Business.Base_SysManage
         /// 获取所有数据库连接
         /// </summary>
         /// <returns></returns>
-        List<Base_DatabaseLink> GetAllDbLink();
+        IList<Base_DatabaseLink> GetAllDbLink();
 
         /// <summary>
         /// 获取数据库所有表
         /// </summary>
         /// <param name="linkId">数据库连接Id</param>
         /// <returns></returns>
-        List<DbTableInfo> GetDbTableList(string linkId);
+        IList<DbTableInfo> GetDbTableList(string linkId);
 
         /// <summary>
         /// 生成代码

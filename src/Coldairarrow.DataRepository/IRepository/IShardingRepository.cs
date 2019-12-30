@@ -1,4 +1,6 @@
-﻿namespace Coldairarrow.DataRepository
+﻿using Coldairarrow.Entity;
+
+namespace Coldairarrow.DataRepository
 {
     public interface IShardingRepository : IBaseRepository
     {
@@ -9,7 +11,7 @@
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <returns></returns>
-        IShardingQueryable<T> GetIShardingQueryable<T>() where T : class, new();
+        IShardingQueryable<T> GetIShardingQueryable<T>() where T : EntityBase, new();
 
         #endregion
     }

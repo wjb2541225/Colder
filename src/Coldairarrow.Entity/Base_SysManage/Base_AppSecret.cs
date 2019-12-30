@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// ”¶”√√‹‘ø
     /// </summary>
     [Table("Base_AppSecret")]
-    public class Base_AppSecret
+    public class Base_AppSecret : BusinessEntityBase
     {
 
         /// <summary>

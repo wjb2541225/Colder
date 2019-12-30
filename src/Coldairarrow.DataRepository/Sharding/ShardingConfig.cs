@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Coldairarrow.Util.ClassLibrary;
 
 namespace Coldairarrow.DataRepository
 {
@@ -171,8 +172,8 @@ namespace Coldairarrow.DataRepository
 
             return resList;
         }
-        private SynchronizedCollection<DataSource> _dataSource { get; } = new SynchronizedCollection<DataSource>();
-        private SynchronizedCollection<AbstractDatabse> _absDb { get; } = new SynchronizedCollection<AbstractDatabse>();
+        private Util.ClassLibrary.SynchronizedCollection<DataSource> _dataSource { get; } = new Util.ClassLibrary.SynchronizedCollection<DataSource>();
+        private Util.ClassLibrary.SynchronizedCollection<AbstractDatabse> _absDb { get; } = new Util.ClassLibrary.SynchronizedCollection<AbstractDatabse>();
 
         #endregion
     }

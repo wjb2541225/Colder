@@ -158,20 +158,20 @@ namespace Coldairarrow.Business
         /// 添加多条数据
         /// </summary>
         /// <param name="entities">实体对象集合</param>
-        public void Insert(List<T> entities)
+        public void Insert(IList<T> entities)
         {
             entities.ForEach(p =>
             {
                 FillCreateInfo(p);
             });
-            Service.Insert<T>(entities);
+            Service.InsertList<T>(entities);
         }
 
         /// <summary>
         /// 批量添加数据,速度快
         /// </summary>
         /// <param name="entities"></param>
-        public void BulkInsert(List<T> entities)
+        public void BulkInsert(IList<T> entities)
         {
             entities.ForEach(p =>
             {
@@ -205,7 +205,7 @@ namespace Coldairarrow.Business
         /// 通过主键删除多条数据
         /// </summary>
         /// <param name="keys"></param>
-        public void Delete(List<string> keys)
+        public void Delete(IList<string> keys)
         {
             Service.Delete<T>(keys);
         }
@@ -223,9 +223,9 @@ namespace Coldairarrow.Business
         /// 删除多条数据
         /// </summary>
         /// <param name="entities">实体对象集合</param>
-        public void Delete(List<T> entities)
+        public void Delete(IList<T> entities)
         {
-            Service.Delete<T>(entities);
+            Service.DeleteList<T>(entities);
         }
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace Coldairarrow.Business
         /// 删除指定主键数据
         /// </summary>
         /// <param name="key"></param>
-        public void LogicDeleteAll(string key)
+        public void LogicDelete(string key)
         {
             Service.Delete<T>(key);
         }
@@ -277,7 +277,7 @@ namespace Coldairarrow.Business
         /// 通过主键删除多条数据
         /// </summary>
         /// <param name="keys"></param>
-        public void LogicDeleteAll(List<string> keys)
+        public void LogicDelete(IList<string> keys)
         {
             Service.Delete<T>(keys);
         }
@@ -286,7 +286,7 @@ namespace Coldairarrow.Business
         /// 删除单条数据
         /// </summary>
         /// <param name="entity">实体对象</param>
-        public void LogicDeleteAll(T entity)
+        public void LogicDelete(T entity)
         {
             Service.Delete<T>(entity);
         }
@@ -295,16 +295,16 @@ namespace Coldairarrow.Business
         /// 删除多条数据
         /// </summary>
         /// <param name="entities">实体对象集合</param>
-        public void LogicDeleteAll(List<T> entities)
+        public void LogicDelete(IList<T> entities)
         {
-            Service.Delete<T>(entities);
+            Service.DeleteList<T>(entities);
         }
 
         /// <summary>
         /// 删除指定条件数据
         /// </summary>
         /// <param name="condition">筛选条件</param>
-        public void LogicDeleteAll(Expression<Func<T, bool>> condition)
+        public void LogicDelete(Expression<Func<T, bool>> condition)
         {
             Service.Delete(condition);
         }
@@ -343,9 +343,9 @@ namespace Coldairarrow.Business
         /// </summary>
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="entities">数据列表</param>
-        public void Update(List<T> entities)
+        public void Update(IList<T> entities)
         {
-            Service.Update<T>(entities);
+            Service.UpdateList<T>(entities);
         }
 
         /// <summary>
@@ -353,7 +353,7 @@ namespace Coldairarrow.Business
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="properties">需要更新的字段</param>
-        public void UpdateAny(T entity, List<string> properties)
+        public void UpdateAny(T entity, IList<string> properties)
         {
             Service.UpdateAny(entity, properties);
         }
@@ -363,9 +363,9 @@ namespace Coldairarrow.Business
         /// </summary>
         /// <param name="entities">数据列表</param>
         /// <param name="properties">需要更新的字段</param>
-        public void UpdateAny(List<T> entities, List<string> properties)
+        public void UpdateAny(IList<T> entities, IList<string> properties)
         {
-            Service.UpdateAny(entities, properties);
+            Service.UpdateListAny(entities, properties);
         }
 
         /// <summary>
@@ -414,7 +414,7 @@ namespace Coldairarrow.Business
         /// </summary>
         /// <typeparam name="T">实体类型</typeparam>
         /// <returns></returns>
-        public List<T> GetList()
+        public IList<T> GetList()
         {
             return Service.GetList<T>();
         }
@@ -484,7 +484,7 @@ namespace Coldairarrow.Business
         /// <param name="sql">Sql语句</param>
         /// <param name="parameters">查询参数</param>
         /// <returns></returns>
-        public DataTable GetDataTableWithSql(string sql, List<DbParameter> parameters)
+        public DataTable GetDataTableWithSql(string sql, IList<DbParameter> parameters)
         {
             return Service.GetDataTableWithSql(sql, parameters);
         }
@@ -495,7 +495,7 @@ namespace Coldairarrow.Business
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="sqlStr">sql语句</param>
         /// <returns></returns>
-        public List<U> GetListBySql<U>(string sqlStr) where U : class, new()
+        public IList<U> GetListBySql<U>(string sqlStr) where U : class, new()
         {
             return Service.GetListBySql<U>(sqlStr);
         }
@@ -507,7 +507,7 @@ namespace Coldairarrow.Business
         /// <param name="sqlStr">sql语句</param>
         /// <param name="param">参数</param>
         /// <returns></returns>
-        public List<U> GetListBySql<U>(string sqlStr, List<DbParameter> param) where U : class, new()
+        public IList<U> GetListBySql<U>(string sqlStr, IList<DbParameter> param) where U : class, new()
         {
             return Service.GetListBySql<U>(sqlStr, param);
         }
@@ -529,7 +529,7 @@ namespace Coldairarrow.Business
         /// 通过参数执行Sql语句
         /// </summary>
         /// <param name="sql">Sql语句</param>
-        public int ExecuteSql(string sql, List<DbParameter> parameters)
+        public int ExecuteSql(string sql, IList<DbParameter> parameters)
         {
             return Service.ExecuteSql(sql, parameters);
         }
@@ -699,16 +699,26 @@ namespace Coldairarrow.Business
 
         private void FillCreateInfo(T entity)
         {
-            entity.CreateDate = DateTime.Now;
-            entity.CreateUserId = Operator.UserId;
-            entity.CreateUserName = Operator.UserInfo.UserName;
+            var businessEntity = entity as BusinessEntityBase;
+            if(businessEntity==null)
+            {
+                return;
+            }
+            businessEntity.CreateDate = DateTime.Now;
+            businessEntity.CreateUserId = Operator.UserId;
+            businessEntity.CreateUserName = Operator.UserInfo.UserName;
         }
 
         private void FillModifyInfo(T entity)
         {
-            entity.ModifyDate = DateTime.Now;
-            entity.ModifyUserId = Operator.UserId;
-            entity.ModifyUserName = Operator.UserInfo.UserName;
+            var businessEntity = entity as BusinessEntityBase;
+            if (businessEntity == null)
+            {
+                return;
+            }
+            businessEntity.ModifyDate = DateTime.Now;
+            businessEntity.ModifyUserId = Operator.UserId;
+            businessEntity.ModifyUserName = Operator.UserInfo.UserName;
         }
 
         #endregion

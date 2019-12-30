@@ -199,7 +199,7 @@ namespace Coldairarrow.Business.Base_SysManage
                 });
             });
 
-            Service.Insert(insertList);
+            Service.InsertList(insertList);
         }
 
         #endregion
@@ -273,7 +273,7 @@ namespace Coldairarrow.Business.Base_SysManage
                 });
             });
 
-            Service.Insert(insertList);
+            Service.InsertList(insertList);
 
             //更新缓存
             UpdateUserPermissionCache(userId);

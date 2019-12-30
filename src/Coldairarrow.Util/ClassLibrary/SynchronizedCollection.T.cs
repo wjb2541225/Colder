@@ -1,6 +1,9 @@
-﻿using Coldairarrow.Util;
+﻿
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
-namespace System.Collections.Generic
+namespace Coldairarrow.Util.ClassLibrary
 {
     public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
     {

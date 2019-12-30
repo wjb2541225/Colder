@@ -149,7 +149,7 @@ namespace Coldairarrow.Business.Base_SysManage
                 RoleId = x
             }).ToList();
 
-            Service.Insert(insertList);
+            Service.InsertList(insertList);
             _sysUserCache.UpdateCache(userId);
             _permissionManage.UpdateUserPermissionCache(userId);
 

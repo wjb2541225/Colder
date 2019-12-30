@@ -49,10 +49,10 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="entities">数据</param>
-        public override void BulkInsert<T>(List<T> entities)
+        public override void BulkInsert<T>(IList<T> entities)
         {
             DataTable dt = entities.ToDataTable();
-            using (MySqlConnection conn=new MySqlConnection())
+            using (MySqlConnection conn = new MySqlConnection())
             {
                 conn.ConnectionString = ConnectionString;
                 if (conn.State != ConnectionState.Open)
@@ -108,7 +108,7 @@ namespace Coldairarrow.DataRepository
 
         public override void DeleteAll<T>()
         {
-            Delete(GetList<T>());
+            DeleteList(GetList<T>());
         }
 
         #endregion

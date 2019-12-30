@@ -1,9 +1,12 @@
-﻿using Coldairarrow.Util;
+﻿using Coldairarrow.Entity;
+using Coldairarrow.Util;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Coldairarrow.DataRepository
@@ -21,26 +24,28 @@ namespace Coldairarrow.DataRepository
 
         #region 私有成员
 
+
+
         private IRepository _db { get; }
         private Type MapTable(Type absTable, string targetTableName)
         {
             return ShardingHelper.MapTable(absTable, targetTableName);
         }
-        private List<(object targetObj, IRepository targetDb)> GetMapConfigs<T>(List<T> entities)
+        private IList<(T targetObj, IRepository targetDb)> GetMapConfigs<T>(IList<T> entities)
         {
-            List<(object targetObj, IRepository targetDb)> resList = new List<(object targetObj, IRepository targetDb)>();
+            List<(T targetObj, IRepository targetDb)> resList = new List<(T targetObj, IRepository targetDb)>();
             entities.ForEach(aEntity =>
             {
                 (string tableName, string conString, DatabaseType dbType) = ShardingConfig.Instance.GetTheWriteTable(typeof(T).Name, aEntity);
 
-                resList.Add((aEntity.ChangeType(MapTable(typeof(T), tableName)), DbFactory.GetRepository(conString, dbType)));
+                resList.Add((aEntity, DbFactory.GetRepository(conString, dbType)));
             });
 
             return resList;
         }
-        private void WriteTable<T>(List<T> entities, Action<object, IRepository> accessData)
+        private void WriteTable<T>(IList<T> entities, Action<T, IRepository> accessData)
         {
-            var mapConfigs = GetMapConfigs(entities);
+            var mapConfigs = GetMapConfigs<T>(entities);
 
             var dbs = mapConfigs.Select(x => x.targetDb).ToArray();
             if (!_openedTransaction)
@@ -87,6 +92,20 @@ namespace Coldairarrow.DataRepository
             return _transaction;
         }
 
+        protected static PropertyInfo GetKeyProperty(Type type)
+        {
+            return GetKeyPropertys(type).FirstOrDefault();
+        }
+        protected static List<PropertyInfo> GetKeyPropertys(Type type)
+        {
+            var properties = type
+                .GetProperties()
+                .Where(x => x.GetCustomAttributes(true).Select(o => o.GetType().FullName).Contains(typeof(KeyAttribute).FullName))
+                .ToList();
+
+            return properties;
+        }
+
         #endregion
 
         #region 外部接口
@@ -96,9 +115,9 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        public void Insert<T>(T entity) where T : class, new()
+        public void Insert<T>(T entity) where T : EntityBase, new()
         {
-            Insert(new List<T> { entity });
+            InsertList<T>(new List<T> { entity });
         }
 
         /// <summary>
@@ -106,7 +125,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        public void Insert<T>(List<T> entities) where T : class, new()
+        public void InsertList<T>(IList<T> entities) where T : EntityBase, new()
         {
             WriteTable(entities, (targetObj, targetDb) => targetDb.Insert(targetObj));
         }
@@ -115,7 +134,7 @@ namespace Coldairarrow.DataRepository
         /// 删除所有记录
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
-        public void DeleteAll<T>() where T : class, new()
+        public void DeleteAll<T>() where T : EntityBase, new()
         {
             var configs = ShardingConfig.Instance.GetAllWriteTables(typeof(T).Name);
             var allDbs = configs.Select(x => new
@@ -150,7 +169,7 @@ namespace Coldairarrow.DataRepository
             {
                 allDbs.ForEach(x =>
                 {
-                    x.Db.DeleteAll(x.TargetType);
+                    x.Db.DeleteAll<T>();
                 });
             }
         }
@@ -160,9 +179,9 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        public void Delete<T>(T entity) where T : class, new()
+        public void Delete<T>(T entity) where T : EntityBase, new()
         {
-            Delete(new List<T> { entity });
+            DeleteList<T>(new List<T> { entity });
         }
 
         /// <summary>
@@ -170,7 +189,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        public void Delete<T>(List<T> entities) where T : class, new()
+        public void DeleteList<T>(IList<T> entities) where T : EntityBase, new()
         {
             WriteTable(entities, (targetObj, targetDb) => targetDb.Delete(targetObj));
         }
@@ -180,11 +199,120 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="condition">筛选条件</param>
-        public void Delete<T>(Expression<Func<T, bool>> condition) where T : class, new()
+        public void Delete<T>(Expression<Func<T, bool>> condition) where T : EntityBase, new()
         {
             var deleteList = GetIShardingQueryable<T>().Where(condition).ToList();
 
-            Delete(deleteList);
+            DeleteList<T>(deleteList);
+        }
+
+        /// <summary>
+        /// 删除所有数据
+        /// </summary>
+        public void LogicDeleteAll<T>() where T : BusinessEntityBase, new()
+        {
+            var configs = ShardingConfig.Instance.GetAllWriteTables(typeof(T).Name);
+            var allDbs = configs.Select(x => new
+            {
+                Db = DbFactory.GetRepository(x.conString, x.dbType),
+                TargetType = MapTable(typeof(T), x.tableName)
+            }).ToList();
+
+            var dbs = allDbs.Select(x => x.Db).ToArray();
+
+            if (!_openedTransaction)
+            {
+                using (DistributedTransaction transaction = new DistributedTransaction(dbs))
+                {
+                    transaction.BeginTransaction();
+
+                    Run();
+
+                    var (Success, ex) = transaction.EndTransaction();
+
+                    if (!Success)
+                        throw ex;
+                }
+            }
+            else
+            {
+                _transaction.AddRepository(dbs);
+                Run();
+            }
+
+            void Run()
+            {
+                allDbs.ForEach(x =>
+                {
+                    x.Db.LogicDeleteAll<T>();
+                });
+            }
+        }
+
+        /// <summary>
+        /// 删除指定主键数据
+        /// </summary>
+        /// <param name="key"></param>
+        public void LogicDelete<T>(string key) where T : BusinessEntityBase, new()
+        {
+            LogicDeleteList<T>(new List<string> { key });
+        }
+
+        /// <summary>
+        /// 通过主键删除多条数据
+        /// </summary>
+        /// <param name="keys"></param>
+        public void LogicDeleteList<T>(IList<string> keys) where T : BusinessEntityBase, new()
+        {
+            LogicDeleteList(BuildEntity<T>(keys));
+        }
+
+        /// <summary>
+        /// 删除单条数据
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        public void LogicDelete<T>(T entity) where T : BusinessEntityBase, new()
+        {
+            LogicDeleteList<T>(new List<T> { entity });
+        }
+
+        /// <summary>
+        /// 删除多条数据
+        /// </summary>
+        /// <param name="entities">实体对象集合</param>
+        public void LogicDeleteList<T>(IList<T> entities) where T : BusinessEntityBase, new()
+        {
+            WriteTable(entities, (targetObj, targetDb) => { targetDb.LogicDelete(targetObj); });
+        }
+
+        /// <summary>
+        /// 删除指定条件数据
+        /// </summary>
+        /// <param name="condition">筛选条件</param>
+        public void LogicDelete<T>(Expression<Func<T, bool>> condition) where T : BusinessEntityBase, new()
+        {
+            var list = GetIShardingQueryable<T>().Where(condition).ToList();
+            list.ForEach(aData => aData.DeleteMark = BusinessEntityBase.INT_DELETED);
+            UpdateList<T>(list);
+        }
+
+
+        private IList<T> BuildEntity<T>(IList<string> keys)
+        {
+            var type = typeof(T);
+            var theProperty = GetKeyProperty(type);
+            if (theProperty == null)
+                throw new Exception("该实体没有主键标识！请使用[Key]标识主键！");
+
+            List<T> deleteList = new List<T>();
+            keys.ForEach(aKey =>
+            {
+                T newData = (T)Activator.CreateInstance(type);
+                var value = aKey.ChangeType(theProperty.PropertyType);
+                theProperty.SetValue(newData, value);
+                deleteList.Add(newData);
+            });
+            return deleteList;
         }
 
         /// <summary>
@@ -192,9 +320,9 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
-        public void Update<T>(T entity) where T : class, new()
+        public void Update<T>(T entity) where T : EntityBase, new()
         {
-            Update(new List<T> { entity });
+            UpdateList<T>(new List<T> { entity });
         }
 
         /// <summary>
@@ -202,7 +330,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
-        public void Update<T>(List<T> entities) where T : class, new()
+        public void UpdateList<T>(IList<T> entities) where T : EntityBase, new()
         {
             WriteTable(entities, (targetObj, targetDb) => targetDb.Update(targetObj));
         }
@@ -213,9 +341,9 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entity">实体对象</param>
         /// <param name="properties">属性</param>
-        public void UpdateAny<T>(T entity, List<string> properties) where T : class, new()
+        public void UpdateAny<T>(T entity, IList<string> properties) where T : EntityBase, new()
         {
-            UpdateAny(new List<T> { entity }, properties);
+            UpdateListAny<T>(new List<T> { entity }, properties);
         }
 
         /// <summary>
@@ -224,7 +352,7 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="entities">实体对象集合</param>
         /// <param name="properties">属性</param>
-        public void UpdateAny<T>(List<T> entities, List<string> properties) where T : class, new()
+        public void UpdateListAny<T>(IList<T> entities,IList<string> properties) where T : EntityBase, new()
         {
             WriteTable(entities, (targetObj, targetDb) => targetDb.UpdateAny(targetObj, properties));
         }
@@ -235,11 +363,11 @@ namespace Coldairarrow.DataRepository
         /// <typeparam name="T">实体泛型</typeparam>
         /// <param name="whereExpre">筛选条件</param>
         /// <param name="set">更新操作</param>
-        public void UpdateWhere<T>(Expression<Func<T, bool>> whereExpre, Action<T> set) where T : class, new()
+        public void UpdateWhere<T>(Expression<Func<T, bool>> whereExpre, Action<T> set) where T : EntityBase, new()
         {
             var list = GetIShardingQueryable<T>().Where(whereExpre).ToList();
             list.ForEach(aData => set(aData));
-            Update(list);
+            UpdateList<T>(list);
         }
 
         /// <summary>
@@ -247,7 +375,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <returns></returns>
-        public IShardingQueryable<T> GetIShardingQueryable<T>() where T : class, new()
+        public IShardingQueryable<T> GetIShardingQueryable<T>() where T : EntityBase, new()
         {
             return new ShardingQueryable<T>(_db.GetIQueryable<T>(), _transaction);
         }
@@ -257,7 +385,7 @@ namespace Coldairarrow.DataRepository
         /// </summary>
         /// <typeparam name="T">实体泛型</typeparam>
         /// <returns></returns>
-        public List<T> GetList<T>() where T : class, new()
+        public IList<T> GetList<T>() where T : EntityBase, new()
         {
             return GetIShardingQueryable<T>().ToList();
         }

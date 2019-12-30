@@ -8,7 +8,7 @@ namespace Coldairarrow.Entity.Base_SysManage
     /// ²¿ÃÅ±í
     /// </summary>
     [Table("Base_Department")]
-    public class Base_Department
+    public class Base_Department : BusinessEntityBase
     {
 
         /// <summary>
