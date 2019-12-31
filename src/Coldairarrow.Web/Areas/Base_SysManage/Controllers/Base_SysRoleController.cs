@@ -108,7 +108,7 @@ namespace Coldairarrow.Web.Areas.Base_SysManage.Controllers
         /// <returns></returns>
         public ActionResult SavePermission(string roleId, string permissions)
         {
-            _sysRoleBus.SavePermission(roleId, permissions.ToList<string>());
+            //_sysRoleBus.SavePermission(roleId, permissions.ToList<string>());
 
             return Success();
         }

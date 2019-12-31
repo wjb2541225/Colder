@@ -9,7 +9,7 @@ namespace Coldairarrow.Business.Base_SysManage
     {
         #region 外部接口
 
-        public List<Base_AppSecret> GetDataList(Pagination pagination, string keyword)
+        public IList<Base_AppSecret> GetDataList(Pagination pagination, string keyword)
         {
             var q = GetIQueryable();
             var where = LinqHelper.True<Base_AppSecret>();
@@ -72,7 +72,7 @@ namespace Coldairarrow.Business.Base_SysManage
         /// <param name="theData">删除的数据</param>
         /// 
         [DataDeleteLog(LogType.接口密钥管理, "AppId", "应用Id")]
-        public AjaxResult DeleteData(List<string> ids)
+        public AjaxResult DeleteData(IList<string> ids)
         {
             Delete(ids);
 
@@ -84,7 +84,7 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         /// <param name="appId">应用Id</param>
         /// <param name="permissions">权限值</param>
-        public AjaxResult SavePermission(string appId, List<string> permissions)
+        public AjaxResult SavePermission(string appId, IList<Permission> permissions)
         {
             Service.Delete<Base_PermissionAppId>(x => x.AppId == appId);
 
@@ -95,13 +95,18 @@ namespace Coldairarrow.Business.Base_SysManage
                 {
                     Id = IdHelper.GetId(),
                     AppId = appId,
-                    PermissionValue = newPermission
+                    PermissionValue = newPermission.Id
                 });
             });
 
             Service.InsertList(insertList);
 
             return Success();
+        }
+
+        public IList<Base_PermissionAppId> GetPermissions(string appId)
+        {
+            return Service.GetIQueryable<Base_PermissionAppId>().Where(p => p.AppId == appId).ToList();
         }
 
         #endregion

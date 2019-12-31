@@ -13,7 +13,8 @@ namespace Coldairarrow.Business.Base_SysManage
         AjaxResult AddData(Base_SysRole newData);
         AjaxResult UpdateData(Base_SysRole theData);
         AjaxResult DeleteData(List<string> ids);
-        AjaxResult SavePermission(string roleId, List<string> permissions);
+        AjaxResult SavePermission(string roleId, IList<Permission> permissions);
+        IList<Base_PermissionRole> GetPermissions(IList<string> roleIds);
     }
 
     public class Base_SysRoleDTO : Base_SysRole

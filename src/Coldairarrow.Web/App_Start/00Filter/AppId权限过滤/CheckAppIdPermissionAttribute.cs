@@ -47,15 +47,15 @@ namespace Coldairarrow.Web
             if (thePermission == null)
                 return;
             string needPermission = thePermission.PermissionValue;
-            bool hasPermission = PermissionManage.GetAppIdPermissionValues(appId).Any(x => x.ToLower() == needPermission.ToLower());
-            if (hasPermission)
-                return;
-            else
-            {
-                res.Success = false;
-                res.Msg = "权限不足！访问失败！";
-                filterContext.Result = new ContentResult { Content = res.ToJson() };
-            }
+            //bool hasPermission = PermissionManage.GetAppIdPermissionValues(appId).Any(x => x.ToLower() == needPermission.ToLower());
+            //if (hasPermission)
+            //    return;
+            //else
+            //{
+            //    res.Success = false;
+            //    res.Msg = "权限不足！访问失败！";
+            //    filterContext.Result = new ContentResult { Content = res.ToJson() };
+            //}
         }
 
         /// <summary>

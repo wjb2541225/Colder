@@ -9,12 +9,8 @@ namespace Coldairarrow.Business.Base_SysManage
     public interface IPermissionManage
     {
         #region 所有权限
+        IList<Permission> LoadAllPermission();
 
-        /// <summary>
-        /// 获取所有权限值
-        /// </summary>
-        /// <returns></returns>
-        List<string> GetAllPermissionValues();
 
         #endregion
 
@@ -25,7 +21,14 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         /// <param name="roleId"></param>
         /// <returns></returns>
-        List<PermissionModule> GetRolePermissionModules(string roleId);
+        IList<Permission> GetRolePermission(string roleId);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="roleId"></param>
+        /// <param name="permissions"></param>
+        void SetRolePermission(string roleId, IList<Permission> permissions);
 
         #endregion
 
@@ -36,21 +39,14 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         /// <param name="appId"></param>
         /// <returns></returns>
-        List<PermissionModule> GetAppIdPermissionModules(string appId);
-
-        /// <summary>
-        /// 获取AppId权限值
-        /// </summary>
-        /// <param name="appId"></param>
-        /// <returns></returns>
-        List<string> GetAppIdPermissionValues(string appId);
+        IList<Permission> GetAppIdPermissions(string appId);
 
         /// <summary>
         /// 设置AppId权限
         /// </summary>
-        /// <param name="appId">AppId</param>
-        /// <param name="permissions">权限值列表</param>
-        void SetAppIdPermission(string appId, List<string> permissions);
+        /// <param name="appId"></param>
+        /// <param name="permissions"></param>
+        void SetAppIdPermission(string appId, List<Permission> permissions);
 
         #endregion
 
@@ -61,21 +57,8 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        List<PermissionModule> GetUserPermissionModules(string userId);
+        void SetUserPermission(string userId, List<Permission> permissions);
 
-        /// <summary>
-        /// 获取用户拥有的所有权限值
-        /// </summary>
-        /// <param name="userId">用户Id</param>
-        /// <returns></returns>
-        List<string> GetUserPermissionValues(string userId);
-
-        /// <summary>
-        /// 设置用户权限
-        /// </summary>
-        /// <param name="userId">用户Id</param>
-        /// <param name="permissions">权限值列表</param>
-        void SetUserPermission(string userId, List<string> permissions);
 
         /// <summary>
         /// 清除所有用户权限缓存
@@ -93,22 +76,40 @@ namespace Coldairarrow.Business.Base_SysManage
         #region 当前操作用户权限
 
         /// <summary>
-        /// 获取当前操作者拥有的所有权限值
+        /// 获取当前操作者在当前模块下的权限
         /// </summary>
         /// <returns></returns>
-        List<string> GetOperatorPermissionValues();
+        IList<Permission> GetUserPermissionOfOperator(string userId, string moduleUrl);
 
         /// <summary>
-        /// 判断当前操作者是否拥有某项权限值
+        /// 获取当前用户的模块权限 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        IList<Permission> GetUserPermissionOfModule(string userId);
+
+        /// <summary>
+        /// 获取当前用户的所有权限
         /// </summary>
         /// <param name="value">权限值</param>
         /// <returns></returns>
-        bool OperatorHasPermissionValue(string value);
+        IList<Permission> GetUserPermission(string userId);
+
+        IList<>
 
         #endregion
     }
 
     #region 数据模型
+
+    public class Permission
+    {
+        public string Id { get; set; }
+
+        public string ModuleUrl { get; set; }
+
+        public string Name { get; set; }
+    }
 
     public class PermissionModule
     {

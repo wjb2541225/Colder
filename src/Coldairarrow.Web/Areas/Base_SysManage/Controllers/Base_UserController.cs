@@ -53,7 +53,7 @@ namespace Coldairarrow.Web.Areas.Base_SysManage.Controllers
 
         public ActionResult GetDataList(Pagination pagination, string keyword)
         {
-            var dataList = _sysUserBus.GetDataList(pagination, false, null, keyword);
+            var dataList = _sysUserBus.GetUserInfos(pagination, false, null, keyword);
 
             return DataTable_Bootstrap(dataList, pagination);
         }
@@ -126,7 +126,7 @@ namespace Coldairarrow.Web.Areas.Base_SysManage.Controllers
         /// <returns></returns>
         public ActionResult SavePermission(string userId, string permissions)
         {
-            _permissionManage.SetUserPermission(userId, permissions.ToList<string>());
+            //_permissionManage.SetUserPermission(userId, permissions.ToList<string>());
 
             return Success();
         }

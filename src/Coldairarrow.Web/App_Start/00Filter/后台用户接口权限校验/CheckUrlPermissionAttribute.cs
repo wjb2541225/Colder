@@ -37,18 +37,18 @@ namespace Coldairarrow.Web
             if (thePermission == null)
                 return;
             string needPermission = thePermission.PermissionValue;
-            bool hasPermission = PermissionManage.GetOperatorPermissionValues().Any(x => x.ToLower() == needPermission.ToLower());
-            if (hasPermission)
-                return;
-            else
-            {
-                AjaxResult res = new AjaxResult
-                {
-                    Success = false,
-                    Msg = "权限不足！无法访问！"
-                };
-                filterContext.Result = new ContentResult { Content = res.ToJson(), ContentType = "application/json;charset=utf-8" };
-            }
+            //bool hasPermission = PermissionManage.GetOperatorPermissionValues().Any(x => x.ToLower() == needPermission.ToLower());
+            //if (hasPermission)
+            //    return;
+            //else
+            //{
+            //    AjaxResult res = new AjaxResult
+            //    {
+            //        Success = false,
+            //        Msg = "权限不足！无法访问！"
+            //    };
+            //    filterContext.Result = new ContentResult { Content = res.ToJson(), ContentType = "application/json;charset=utf-8" };
+            //}
         }
 
         /// <summary>

@@ -6,7 +6,8 @@ namespace Coldairarrow.Business.Base_SysManage
 {
     public interface IBase_UserBusiness
     {
-        List<Base_UserDTO> GetDataList(Pagination pagination, bool all, string userId = null, string keyword = null);
+        List<Base_UserDTO> GetUserInfos(Pagination pagination, bool all, string userId = null, string keyword = null);
+        List<Base_User> GetDataList(Pagination pagination,  string userId = null, string keyword = null);
         Base_User GetTheData(string id);
         Base_UserDTO GetTheInfo(string userId);
         List<Base_User> BuildSelectResult(string selectedValueJson, string q, string textFiled, string valueField);
@@ -16,6 +17,9 @@ namespace Coldairarrow.Business.Base_SysManage
         AjaxResult DeleteData(List<string> ids);
         AjaxResult SetUserRole(string userId, List<string> roleIds);
         AjaxResult ChangePwd(string oldPwd, string newPwd);
+
+        IList<Base_PermissionUser> GetPermissions(string userId);
+        AjaxResult SaveUserPermission(string userId, IList<Permission> permissions);
     }
 
     public class Base_UserDTO : Base_User

@@ -1,4 +1,5 @@
-﻿using Coldairarrow.Util;
+﻿using Coldairarrow.Entity.Base_SysManage;
+using Coldairarrow.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,6 +46,7 @@ namespace Coldairarrow.Business.Base_SysManage
                     developMenu.text = menuDefine.MenuTitle;
                     developMenu.icon = menuDefine.MenuImg;
                     developMenu.url = GetUrl(menuDefine.NavigateUrl);
+                    developMenu.PermissionId = menuDefine.Id;
                     if (grouped.Any(p => p.Key == menuDefine.Id))
                     {
                         developMenu.children = new List<Menu>();
@@ -169,17 +171,17 @@ namespace Coldairarrow.Business.Base_SysManage
             if (_operator.IsAdmin())
                 return resList;
 
-            var userPermissions = _permissionManage.GetUserPermissionValues(_operator.UserId);
+            var userPermissions = _permissionManage.GetUserPermissionModules(_operator.UserId);
             RemoveNoPermission(resList, userPermissions);
 
             return resList;
 
-            void RemoveNoPermission(List<Menu> menus, List<string> userPermissionValues)
+            void RemoveNoPermission(List<Menu> menus, IList<Permission> userPermissionValues)
             {
                 for (int i = menus.Count - 1; i >= 0; i--)
                 {
                     var theMenu = menus[i];
-                    if (!theMenu.Permission.IsNullOrEmpty() && !userPermissions.Contains(theMenu.Permission))
+                    if (!theMenu.PermissionId.IsNullOrEmpty() && !userPermissions.Any(p => p.Id == theMenu.PermissionId))
                         menus.RemoveAt(i);
                     else if (theMenu.children?.Count > 0)
                     {

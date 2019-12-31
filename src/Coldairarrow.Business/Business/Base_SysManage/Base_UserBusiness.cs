@@ -38,7 +38,7 @@ namespace Coldairarrow.Business.Base_SysManage
 
         #region 外部接口
 
-        public List<Base_UserDTO> GetDataList(Pagination pagination, bool all, string userId = null, string keyword = null)
+        public List<Base_UserDTO> GetUserInfos(Pagination pagination, bool all, string userId = null, string keyword = null)
         {
             Expression<Func<Base_User, Base_Department, Base_UserDTO>> select = (a, b) => new Base_UserDTO
             {
@@ -87,6 +87,20 @@ namespace Coldairarrow.Business.Base_SysManage
                     aUser.RoleNameList = roleList.Select(x => x.RoleName).ToList();
                 });
             }
+        }
+
+        public List<Base_User> GetDataList(Pagination pagination, string userId = null, string keyword = null)
+        {
+            var where = LinqHelper.True<Base_User>();
+            if (!userId.IsNullOrEmpty())
+                where = where.And(x => x.Id == userId);
+            if (!keyword.IsNullOrEmpty())
+            {
+                where = where.And(x =>
+                    EF.Functions.Like(x.UserName, keyword)
+                    || EF.Functions.Like(x.RealName, keyword));
+            }
+            return GetIQueryable().Where(where).GetPagination(pagination).ToList();
         }
 
         public Base_User GetTheData(string id)
@@ -182,6 +196,18 @@ namespace Coldairarrow.Business.Base_SysManage
             _sysUserCache.UpdateCache(userId);
 
             return res;
+        }
+
+        public IList<Base_PermissionUser> GetPermissions(string userId)
+        {
+            return Service.GetIQueryable<Base_PermissionUser>().Where(p => p.UserId == userId).ToList();
+        }
+
+        public AjaxResult SaveUserPermission(string userId, IList<Permission> permissions)
+        {
+            Service.Delete<Base_PermissionUser>(x => x.UserId == userId);
+            Service.InsertList(permissions.Select(p => new Base_PermissionUser { Id = IdHelper.GetId(), UserId = userId, PermissionValue = p.Id }).ToList());
+            return Success();
         }
 
         #endregion

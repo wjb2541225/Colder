@@ -95,7 +95,7 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         /// <param name="roleId">角色Id</param>
         /// <param name="permissions">权限值</param>
-        public AjaxResult SavePermission(string roleId, List<string> permissions)
+        public AjaxResult SavePermission(string roleId, IList<Permission> permissions)
         {
             Service.Delete<Base_PermissionRole>(x => x.RoleId == roleId);
             List<Base_PermissionRole> insertList = new List<Base_PermissionRole>();
@@ -105,14 +105,18 @@ namespace Coldairarrow.Business.Base_SysManage
                 {
                     Id = IdHelper.GetId(),
                     RoleId = roleId,
-                    PermissionValue = newPermission
+                    PermissionValue = newPermission.Id
                 });
             });
 
             Service.InsertList(insertList);
-            _permissionManage.ClearUserPermissionCache();
 
             return Success();
+        }
+
+        public IList<Base_PermissionRole> GetPermissions(IList<string> roleIds)
+        {
+            return Service.GetIQueryable<Base_PermissionRole>().Where(p => roleIds.Contains(p.RoleId)).ToList();
         }
 
         #endregion

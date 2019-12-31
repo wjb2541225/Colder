@@ -34,7 +34,7 @@ namespace Coldairarrow.Business.Base_SysManage
         public string icon { get; set; }
         public string url { get => PathHelper.GetUrl(_url); set => _url = value; }
         public string _url { get; set; }
-        public string Permission { get; set; }
+        public string PermissionId { get; set; }
         public bool IsShow { get; set; } = true;
         public string targetType { get; } = "iframe-tab";
         public bool isHeader { get; } = false;

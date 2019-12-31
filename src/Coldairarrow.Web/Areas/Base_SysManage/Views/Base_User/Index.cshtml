@@ -3,15 +3,12 @@
 @{
     Layout = "~/Views/Shared/_Layout_List.cshtml";
 
-    var manageSysPermission = this.PermissionManage.OperatorHasPermissionValue("sysuser.manageSysPermission");
-    var canManage = PermissionManage.OperatorHasPermissionValue("sysuser.manage");
 }
 
 <div class="fx-content">
     <div id="toobar">
         <div class="btn-group btn-group-sm">
-            @if (canManage)
-            {
+
                 <button onclick="openForm('', '添加数据');" type="button" class="btn btn-default" aria-label="Left Align">
                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     添加
@@ -20,7 +17,7 @@
                     <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     删除
                 </button>
-            }
+            
             <button type="button" class="btn btn-default" aria-label="Right Align" onclick="javascript: location.reload();">
                 <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
                 刷新
@@ -48,8 +45,6 @@
 
 <script>
     var $table = $('#dataTable');
-    var manageSysPermission=@manageSysPermission.ToString().ToLower();
-    var canManage =@canManage.ToString().ToLower();
 
     $(function () {
         initTable();

@@ -17,7 +17,11 @@ namespace Coldairarrow.Business.Base_SysManage
         public IBase_UserBusiness _sysUserBus { get => AutofacHelper.GetScopeService<IBase_UserBusiness>(); }
         public IOperator _operator { get => AutofacHelper.GetScopeService<IOperator>(); }
         public IBase_SysRoleBusiness RoleBus { get => AutofacHelper.GetScopeService<IBase_SysRoleBusiness>(); }
+        private static IBase_SysMenuBusiness _base_SysMenuBusiness { get => AutofacHelper.GetScopeService<IBase_SysMenuBusiness>(); }
 
+        private IBase_AppSecretBusiness base_AppSecretBusiness;
+        private IBase_UserBusiness base_UserBusiness;
+        private IBase_SysRoleBusiness base_SysRoleBusiness;
         #endregion
 
         #region 构造函数
@@ -27,73 +31,29 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         static PermissionManage()
         {
-            InitAllPermissionModules();
-            InitAllPermissionValues();
+            InitAllPermission();
         }
 
         #endregion
 
         #region 内部成员
-
-        private static string _permissionConfigFile { get; } = "~/Config/Permission.config";
         private static List<PermissionModule> _allPermissionModules { get; set; }
         private static List<string> _allPermissionValues { get; set; }
-        private static void InitAllPermissionModules()
+
+        private static IList<Permission> _permissions;
+
+        protected static void InitAllPermission()
         {
-            List<PermissionModule> resList = new List<PermissionModule>();
-            string filePath = PathHelper.GetAbsolutePath(_permissionConfigFile);
-            XElement xe = XElement.Load(filePath);
-            xe.Elements("module")?.ForEach(aModule =>
-            {
-                PermissionModule newModule = new PermissionModule();
-                resList.Add(newModule);
-
-                newModule.Name = aModule.Attribute("name")?.Value;
-                newModule.Value = aModule.Attribute("value")?.Value;
-                newModule.Items = new List<PermissionItem>();
-                aModule?.Elements("permission")?.ForEach(aItem =>
-                {
-                    PermissionItem newItem = new PermissionItem();
-                    newModule.Items.Add(newItem);
-
-                    newItem.Name = aItem?.Attribute("name")?.Value;
-                    newItem.Value = $"{newModule.Value}.{aItem?.Attribute("value")?.Value}";
-                });
-            });
-
-            _allPermissionModules = resList;
+            _permissions = _base_SysMenuBusiness.GetDataList(new Pagination(), null, null)
+                .Select(p => new Permission { Id = p.Id, ModuleUrl = p.NavigateUrl, Name = p.MenuTitle })
+                .ToList();
         }
-        private static void InitAllPermissionValues()
+
+        public IList<Permission> LoadAllPermission()
         {
-            List<string> resList = new List<string>();
-
-            GetAllPermissionModules()?.ForEach(aModule =>
-            {
-                aModule.Items?.ForEach(aItem =>
-                {
-                    resList.Add(aItem.Value);
-                });
-            });
-
-            _allPermissionValues = resList;
+            return _permissions?.DeepClone();
         }
-        private static List<PermissionModule> GetPermissionModules(List<string> hasPermissions)
-        {
-            var permissionModules = GetAllPermissionModules();
-            permissionModules.ForEach(aModule =>
-            {
-                aModule.Items?.ForEach(aItem =>
-                {
-                    aItem.IsChecked = hasPermissions.Contains(aItem.Value);
-                });
-            });
 
-            return permissionModules;
-        }
-        private static List<PermissionModule> GetAllPermissionModules()
-        {
-            return _allPermissionModules.DeepClone();
-        }
         private static string _cacheKey { get; } = "Permission";
         private static string BuildCacheKey(string key)
         {
@@ -102,37 +62,71 @@ namespace Coldairarrow.Business.Base_SysManage
 
         #endregion
 
-        #region 所有权限
-
-        /// <summary>
-        /// 获取所有权限值
-        /// </summary>
-        /// <returns></returns>
-        public List<string> GetAllPermissionValues()
-        {
-            return _allPermissionValues.DeepClone();
-        }
-
-        #endregion
 
         #region 角色权限
 
-        /// <summary>
-        /// 获取角色权限模块
-        /// </summary>
-        /// <param name="roleId"></param>
-        /// <returns></returns>
-        public List<PermissionModule> GetRolePermissionModules(string roleId)
-        {
-            BaseBusiness<Base_PermissionRole> _db = new BaseBusiness<Base_PermissionRole>();
-            List<string> permissions = new List<string>();
-            var theRoleInfo = RoleBus.GetTheInfo(roleId);
-            if (theRoleInfo.RoleType == EnumType.RoleType.超级管理员)
-                permissions = _allPermissionValues.DeepClone();
-            else
-                permissions = _db.GetIQueryable().Where(x => x.RoleId == roleId).Select(x => x.PermissionValue).ToList();
 
-            return GetPermissionModules(permissions);
+        /// <summary>
+        /// 获取角色拥有的所有权限值
+        /// </summary>
+        /// <param name="roleId">用户Id</param>
+        /// <returns></returns>
+        public IList<Permission> GetRolePermission(string roleId)
+        {
+
+            string cacheKey = BuildCacheKey(roleId);
+            var permissions = CacheHelper.Cache.GetCache<IList<Permission>>(cacheKey);
+            if (permissions == null)
+            {
+
+                permissions = GetRolePermissionFromDB(roleId);
+                CacheHelper.Cache.SetCache(cacheKey, permissions);
+            }
+
+            return permissions.DeepClone();
+        }
+
+        private IList<Permission> GetRolePermissionFromDB(string roleId)
+        {
+            return GetRolePermissionFromDB(new List<string> { roleId });
+
+        }
+
+        private IList<Permission> GetRolePermissionFromDB(IList<string> roleIds)
+        {
+            if (roleIds == null || !roleIds.Any())
+            {
+                return new List<Permission>();
+            }
+
+            IList<Base_PermissionRole> rolePermissions = base_SysRoleBusiness.GetPermissions(roleIds);
+            return _permissions.Where(p => rolePermissions.Any(a => a.PermissionValue == p.Id)).ToList();
+
+        }
+
+        /// <summary>
+        /// 设置用户权限
+        /// </summary>
+        /// <param name="userId">用户Id</param>
+        /// <param name="permissions">权限值列表</param>
+        public void SetRolePermission(string roleId, IList<Permission> permissions)
+        {
+
+            base_SysRoleBusiness.SavePermission(roleId, permissions);
+            base_UserBusiness.SaveUserPermission(roleId, permissions);
+            //更新缓存
+            UpdateRolePermissionCache(roleId);
+        }
+
+        /// <summary>
+        /// 更新用户权限缓存
+        /// </summary>
+        /// <param name="userId"><用户Id/param>
+        private void UpdateRolePermissionCache(string roleId)
+        {
+            string cacheKey = BuildCacheKey(roleId);
+            var permissions = GetRolePermissionFromDB(roleId);
+            CacheHelper.Cache.SetCache(cacheKey, permissions);
         }
 
         #endregion
@@ -140,32 +134,22 @@ namespace Coldairarrow.Business.Base_SysManage
         #region AppId权限
 
         /// <summary>
-        /// 获取AppId权限模块
-        /// </summary>
-        /// <param name="appId"></param>
-        /// <returns></returns>
-        public List<PermissionModule> GetAppIdPermissionModules(string appId)
-        {
-            var hasPermissions = GetAppIdPermissionValues(appId);
-
-            return GetPermissionModules(hasPermissions);
-        }
-
-        /// <summary>
         /// 获取AppId权限值
         /// </summary>
         /// <param name="appId"></param>
         /// <returns></returns>
-        public List<string> GetAppIdPermissionValues(string appId)
+        public IList<Permission> GetAppIdPermissions(string appId)
         {
             string cacheKey = BuildCacheKey(appId);
-            var permissions = CacheHelper.Cache.GetCache<List<string>>(cacheKey);
+            var permissions = CacheHelper.Cache.GetCache<List<Permission>>(cacheKey);
             if (permissions == null)
             {
-                BaseBusiness<Base_PermissionAppId> _db = new BaseBusiness<Base_PermissionAppId>();
-                permissions = _db.GetIQueryable().Where(x => x.AppId == appId).Select(x => x.PermissionValue).ToList();
 
-                CacheHelper.Cache.SetCache(cacheKey, permissions);
+                IList<Base_PermissionAppId> appPermissions = base_AppSecretBusiness.GetPermissions(appId);
+                IList<Permission> permissionsOfApp = _permissions.Where(p => appPermissions.Any(a => a.PermissionValue == p.Id)).ToList();
+
+
+                CacheHelper.Cache.SetCache(cacheKey, permissionsOfApp);
             }
 
             return permissions.DeepClone();
@@ -176,70 +160,32 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         /// <param name="appId">AppId</param>
         /// <param name="permissions">权限值列表</param>
-        public void SetAppIdPermission(string appId, List<string> permissions)
+        public void SetAppIdPermission(string appId, List<Permission> permissions)
         {
             //更新缓存
             string cacheKey = BuildCacheKey(appId);
             CacheHelper.Cache.SetCache(cacheKey, permissions);
 
-            //更新数据库
-            BaseBusiness<Base_UnitTest> _db = new BaseBusiness<Base_UnitTest>();
-            var Service = _db.Service;
 
-            Service.Delete<Base_PermissionAppId>(x => x.AppId == appId);
 
-            List<Base_PermissionAppId> insertList = new List<Base_PermissionAppId>();
-            permissions.ForEach(newPermission =>
-            {
-                insertList.Add(new Base_PermissionAppId
-                {
-                    Id = IdHelper.GetId(),
-                    AppId = appId,
-                    PermissionValue = newPermission
-                });
-            });
-
-            Service.InsertList(insertList);
+            base_AppSecretBusiness.SavePermission(appId, permissions);
         }
 
         #endregion
 
         #region 用户权限
 
-        /// <summary>
-        /// 获取用户权限模块
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public List<PermissionModule> GetUserPermissionModules(string userId)
+        private IList<Permission> GetPermissionsFromDB(string userId)
         {
-            var userInfo = _sysUserBus.GetTheInfo(userId);
-            List<string> hasPermissions = new List<string>();
-            if (userInfo.RoleType.HasFlag(RoleType.超级管理员) || userId == "Admin")
-                hasPermissions = _allPermissionValues.DeepClone();
-            else
-                hasPermissions = GetUserPermissionValues(userId);
+            IList<Base_PermissionUser> userPermissions = base_UserBusiness.GetPermissions(userId);
+            IEnumerable<Permission> permissionsOfApp = _permissions.Where(p => userPermissions.Any(a => a.PermissionValue == p.Id));
 
-            return GetPermissionModules(hasPermissions);
-        }
+            IList<string> userRolesIds = base_UserBusiness.GetUserRoleIds(userId);
 
-        /// <summary>
-        /// 获取用户拥有的所有权限值
-        /// </summary>
-        /// <param name="userId">用户Id</param>
-        /// <returns></returns>
-        public List<string> GetUserPermissionValues(string userId)
-        {
-            string cacheKey = BuildCacheKey(userId);
-            var permissions = CacheHelper.Cache.GetCache<List<string>>(cacheKey)?.DeepClone();
+            IList<Permission> rolePermissions = GetRolePermissionFromDB(userRolesIds);
+            permissionsOfApp = permissionsOfApp.Union(rolePermissions);
 
-            if (permissions == null)
-            {
-                UpdateUserPermissionCache(userId);
-                permissions = CacheHelper.Cache.GetCache<List<string>>(cacheKey)?.DeepClone();
-            }
-
-            return permissions;
+            return permissionsOfApp.ToList();
         }
 
         /// <summary>
@@ -247,34 +193,11 @@ namespace Coldairarrow.Business.Base_SysManage
         /// </summary>
         /// <param name="userId">用户Id</param>
         /// <param name="permissions">权限值列表</param>
-        public void SetUserPermission(string userId, List<string> permissions)
+        public void SetUserPermission(string userId, List<Permission> permissions)
         {
-            //更新数据库
-            BaseBusiness<Base_UnitTest> _db = new BaseBusiness<Base_UnitTest>();
-            var Service = _db.Service;
 
-            Service.Delete<Base_PermissionUser>(x => x.UserId == userId);
-            var roleIdList = _db.Service.GetIQueryable<Base_UserRoleMap>().Where(x => x.UserId == userId).Select(x => x.RoleId).ToList();
-            var existsPermissions = Service.GetIQueryable<Base_PermissionRole>()
-                .Where(x => roleIdList.Contains(x.RoleId) && permissions.Contains(x.PermissionValue))
-                .GroupBy(x => x.PermissionValue)
-                .Select(x => x.Key)
-                .ToList();
-            permissions.RemoveAll(x => existsPermissions.Contains(x));
 
-            List<Base_PermissionUser> insertList = new List<Base_PermissionUser>();
-            permissions.ForEach(newPermission =>
-            {
-                insertList.Add(new Base_PermissionUser
-                {
-                    Id = IdHelper.GetId(),
-                    UserId = userId,
-                    PermissionValue = newPermission
-                });
-            });
-
-            Service.InsertList(insertList);
-
+            base_UserBusiness.SaveUserPermission(userId, permissions);
             //更新缓存
             UpdateUserPermissionCache(userId);
         }
@@ -285,7 +208,7 @@ namespace Coldairarrow.Business.Base_SysManage
         public void ClearUserPermissionCache()
         {
             BaseBusiness<Base_UnitTest> _db = new BaseBusiness<Base_UnitTest>();
-            var userIdList = _db.Service.GetIQueryable<Base_User>().Select(x => x.Id).ToList();
+            var userIdList = base_UserBusiness.GetDataList(new Pagination(), null, null).Select(p => p.Id).ToList();
             userIdList.ForEach(aUserId =>
             {
                 CacheHelper.Cache.RemoveCache(BuildCacheKey(aUserId));
@@ -299,16 +222,7 @@ namespace Coldairarrow.Business.Base_SysManage
         public void UpdateUserPermissionCache(string userId)
         {
             string cacheKey = BuildCacheKey(userId);
-            List<string> permissions = new List<string>();
-
-            BaseBusiness<Base_PermissionUser> _db = new BaseBusiness<Base_PermissionUser>();
-            var userPermissions = _db.GetIQueryable().Where(x => x.UserId == userId).Select(x => x.PermissionValue).ToList();
-            var theUser = _db.Service.GetIQueryable<Base_User>().Where(x => x.Id == userId).FirstOrDefault();
-            var roleIdList = _sysUserBus.GetUserRoleIds(userId);
-            var rolePermissions = _db.Service.GetIQueryable<Base_PermissionRole>().Where(x => roleIdList.Contains(x.RoleId)).GroupBy(x => x.PermissionValue).Select(x => x.Key).ToList();
-            var existsPermissions = userPermissions.Concat(rolePermissions).Distinct();
-
-            permissions = existsPermissions.ToList();
+            var permissions = GetPermissionsFromDB(userId);
             CacheHelper.Cache.SetCache(cacheKey, permissions);
         }
 
@@ -320,22 +234,39 @@ namespace Coldairarrow.Business.Base_SysManage
         /// 获取当前操作者拥有的所有权限值
         /// </summary>
         /// <returns></returns>
-        public List<string> GetOperatorPermissionValues()
+        public IList<Permission> GetUserPermissionOfOperator(string userId, string moduleUrl)
         {
-            if (_operator.IsAdmin())
-                return GetAllPermissionValues();
-            else
-                return GetUserPermissionValues(_operator.UserId);
+            return GetUserPermission(userId).Where(p => p.ModuleUrl == moduleUrl).ToList();
         }
 
         /// <summary>
-        /// 判断当前操作者是否拥有某项权限值
+        /// 获取用户权限模块
         /// </summary>
-        /// <param name="value">权限值</param>
+        /// <param name="userId"></param>
         /// <returns></returns>
-        public bool OperatorHasPermissionValue(string value)
+        public IList<Permission> GetUserPermissionOfModule(string userId)
         {
-            return GetOperatorPermissionValues().Exists(x => x.ToLower() == value.ToLower());
+            return GetUserPermission(userId).Where(p => string.IsNullOrEmpty(p.ModuleUrl)).ToList();
+        }
+
+        /// <summary>
+        /// 获取用户拥有的所有权限值
+        /// </summary>
+        /// <param name="userId">用户Id</param>
+        /// <returns></returns>
+        public IList<Permission> GetUserPermission(string userId)
+        {
+
+            string cacheKey = BuildCacheKey(userId);
+            var permissions = CacheHelper.Cache.GetCache<IList<Permission>>(cacheKey);
+            if (permissions == null)
+            {
+
+                permissions = GetPermissionsFromDB(userId);
+                CacheHelper.Cache.SetCache(cacheKey, permissions);
+            }
+
+            return permissions.DeepClone();
         }
 
         #endregion

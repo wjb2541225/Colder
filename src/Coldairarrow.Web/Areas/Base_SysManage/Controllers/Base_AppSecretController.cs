@@ -91,7 +91,7 @@ namespace Coldairarrow.Web.Areas.Base_SysManage.Controllers
 
         public ActionResult SavePermission(string appId, string permissions)
         {
-            _permissionManage.SetAppIdPermission(appId, permissions.ToList<string>());
+            //_permissionManage.SetAppIdPermission(appId, permissions.ToList<string>());
 
             return Success();
         }
